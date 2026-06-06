@@ -1,0 +1,29 @@
+{"ts": 1780784064479, "tick": 1, "kind": "market", "market": "ai-saas", "event": "talent-shortage", "label": "Talent shortage"}
+{"ts": 1780784064479, "tick": 1, "kind": "market", "market": "consumer", "event": "competitor-launch", "label": "Competitor ships major feature"}
+{"ts": 1780784064479, "tick": 1, "kind": "market", "market": "enterprise", "event": "competitor-launch", "label": "Competitor ships major feature"}
+{"ts": 1780784064479, "tick": 1, "kind": "financial", "treasury": 99725, "revenue": 25, "burn": 300, "valuation": 87956, "morale": 76, "runwayTicks": 362.1, "employees": 0}
+{"ts": 1780784064501, "tick": 2, "kind": "market", "market": "ai-saas", "event": "talent-shortage", "label": "Talent shortage"}
+{"ts": 1780784064501, "tick": 2, "kind": "market", "market": "consumer", "event": "regulation", "label": "New regulation"}
+{"ts": 1780784064501, "tick": 2, "kind": "market", "market": "enterprise", "event": "boom", "label": "AI hype cycle"}
+{"ts": 1780784064501, "tick": 2, "kind": "financial", "treasury": 99448, "revenue": 23, "burn": 300, "valuation": 87598, "morale": 76, "runwayTicks": 359.0, "employees": 0}
+{"ts": 1780784064522, "tick": 3, "kind": "market", "market": "ai-saas", "event": "competitor-launch", "label": "Competitor ships major feature"}
+{"ts": 1780784064522, "tick": 3, "kind": "market", "market": "consumer", "event": "bust", "label": "Funding winter"}
+{"ts": 1780784064522, "tick": 3, "kind": "financial", "treasury": 99165, "revenue": 17, "burn": 300, "valuation": 87024, "morale": 77, "runwayTicks": 350.6, "employees": 0}
+{"ts": 1780784114650, "tick": 3, "kind": "hire", "role": "engineer", "name": "engineer-1", "task": "Ship MVP of core product"}
+{"ts": 1780784114675, "tick": 3, "kind": "hire", "role": "marketer", "name": "marketer-2", "task": "Drive demand in ai-saas market"}
+{"ts": 1780784114698, "tick": 4, "kind": "market", "market": "ai-saas", "event": "competitor-launch", "label": "Competitor ships major feature"}
+{"ts": 1780784114698, "tick": 4, "kind": "market", "market": "enterprise", "event": "bust", "label": "Funding winter"}
+{"ts": 1780784114698, "tick": 4, "kind": "financial", "treasury": 98503, "revenue": 18, "burn": 680, "valuation": 67686, "morale": 76, "runwayTicks": 148.7, "employees": 2}
+{"ts": 1780784114723, "tick": 5, "kind": "market", "market": "ai-saas", "event": "bust", "label": "Funding winter"}
+{"ts": 1780784114723, "tick": 5, "kind": "market", "market": "consumer", "event": "boom", "label": "AI hype cycle"}
+{"ts": 1780784114723, "tick": 5, "kind": "market", "market": "enterprise", "event": "bust", "label": "Funding winter"}
+{"ts": 1780784114723, "tick": 5, "kind": "financial", "treasury": 97834, "revenue": 11, "burn": 680, "valuation": 67006, "morale": 77, "runwayTicks": 146.3, "employees": 2}
+{"ts": 1780784114749, "tick": 6, "kind": "market", "market": "ai-saas", "event": "competitor-launch", "label": "Competitor ships major feature"}
+{"ts": 1780784114749, "tick": 6, "kind": "market", "market": "consumer", "event": "boom", "label": "AI hype cycle"}
+{"ts": 1780784114749, "tick": 6, "kind": "market", "market": "enterprise", "event": "competitor-launch", "label": "Competitor ships major feature"}
+{"ts": 1780784114749, "tick": 6, "kind": "financial", "treasury": 97166, "revenue": 12, "burn": 680, "valuation": 66646, "morale": 78, "runwayTicks": 145.4, "employees": 2}
+{"ts": 1780784260609, "tick": 7, "kind": "market", "market": "enterprise", "event": "bust", "label": "Funding winter"}
+{"ts": 1780784260609, "tick": 7, "kind": "financial", "treasury": 96501, "revenue": 15, "burn": 680, "valuation": 66437, "morale": 78, "runwayTicks": 145.1, "employees": 2}
+{"ts": 1780784273702, "tick": 8, "kind": "market", "market": "consumer", "event": "regulation", "label": "New regulation"}
+{"ts": 1780784273702, "tick": 8, "kind": "market", "market": "enterprise", "event": "competitor-launch", "label": "Competitor ships major feature"}
+{"ts": 1780784273702, "tick": 8, "kind": "financial", "treasury": 95838, "revenue": 17, "burn": 680, "valuation": 66186, "morale": 77, "runwayTicks": 144.5, "employees": 2}

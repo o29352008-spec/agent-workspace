@@ -120,6 +120,7 @@
     let offsetX = 0, offsetY = 0;
     let isLive = false;
     let lastFetchOk = 0;
+    let sim = null; // simulation state when available
 
     // Mock for offline preview
     const MOCK_GRAPH = {
@@ -219,10 +220,19 @@
         if (!resp.ok) throw new Error('graph ' + resp.status);
         const g = await resp.json();
         applyGraph(g);
+        // Best-effort fetch of simulation state
+        try {
+          let sr = await fetch('./data/sim.json?t=' + Date.now()).catch(() => null);
+          if (!sr || !sr.ok) {
+            sr = await fetch('https://raw.githubusercontent.com/o29352008-spec/agent-workspace/data/data/sim.json?t=' + Date.now()).catch(() => null);
+          }
+          if (sr && sr.ok) sim = await sr.json();
+        } catch (_) {}
         isLive = true;
         lastFetchOk = Date.now();
         const ago = ((Date.now() - g.generatedAt) / 1000).toFixed(0);
-        statusEl.innerHTML = '<span class="live">● live</span> · ' + nodes.length + ' nodes · ' + edges.length + ' edges · data ' + ago + 's old';
+        const simBit = sim ? ' · sim T' + sim.tick + ' · $' + (sim.company.treasury || 0).toLocaleString() : '';
+        statusEl.innerHTML = '<span class="live">● live</span> · ' + nodes.length + ' nodes · ' + edges.length + ' edges · data ' + ago + 's old' + simBit;
       } catch (e) {
         if (!isLive && nodes.length === 0) {
           applyGraph(MOCK_GRAPH);
@@ -280,6 +290,110 @@
     }
 
     // --- Render ---
+    function drawSimHUD() {
+      if (!sim) return;
+      const c = sim.company || {};
+      const pad = 12;
+      const w = 280;
+      const h = 230;
+      const x = pad;
+      const y = pad + 22;
+
+      // Panel background
+      ctx.fillStyle = 'rgba(20, 20, 32, 0.85)';
+      ctx.strokeStyle = '#1f1f30';
+      ctx.lineWidth = 1;
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeRect(x, y, w, h);
+
+      ctx.font = '10px ui-monospace, monospace';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = '#666';
+      ctx.fillText('CASTLE AI · TICK ' + sim.tick, x + 10, y + 8);
+
+      let ly = y + 24;
+      const drawRow = (label, value, color) => {
+        ctx.fillStyle = '#666';
+        ctx.fillText(label, x + 10, ly);
+        ctx.fillStyle = color || '#ccc';
+        ctx.textAlign = 'right';
+        ctx.fillText(value, x + w - 10, ly);
+        ctx.textAlign = 'left';
+        ly += 14;
+      };
+
+      const net = (c.revenuePerTick || 0) - (c.burnRate || 0);
+      const netColor = net >= 0 ? '#81c784' : '#f44336';
+      drawRow('TREASURY', '$' + (c.treasury || 0).toLocaleString(), c.treasury > 0 ? '#eee' : '#f44336');
+      drawRow('REVENUE/TICK', '$' + (c.revenuePerTick || 0).toLocaleString(), '#81c784');
+      drawRow('BURN/TICK', '$' + (c.burnRate || 0).toLocaleString(), '#ffb74d');
+      drawRow('NET/TICK', (net >= 0 ? '+$' : '-$') + Math.abs(net).toLocaleString(), netColor);
+      drawRow('VALUATION', '$' + (c.valuation || 0).toLocaleString(), '#ce93d8');
+      drawRow('RUNWAY', sim.runwayTicks ? sim.runwayTicks + ' ticks' : 'profitable', sim.runwayTicks && sim.runwayTicks < 10 ? '#f44336' : '#81c784');
+      drawRow('EMPLOYEES', String((sim.employees || []).length), '#4fc3f7');
+
+      // Morale bar
+      ly += 4;
+      ctx.fillStyle = '#666';
+      ctx.fillText('MORALE', x + 10, ly);
+      ctx.fillStyle = '#1f1f30';
+      ctx.fillRect(x + 70, ly + 1, w - 90, 8);
+      const moraleColor = c.morale > 60 ? '#81c784' : c.morale > 30 ? '#ffb74d' : '#f44336';
+      ctx.fillStyle = moraleColor;
+      ctx.fillRect(x + 70, ly + 1, (w - 90) * ((c.morale || 0) / 100), 8);
+      ly += 18;
+
+      // Markets
+      ctx.fillStyle = '#444';
+      ctx.fillText('MARKETS', x + 10, ly);
+      ly += 12;
+      const markets = sim.markets || {};
+      for (const mid of Object.keys(markets)) {
+        const m = markets[mid];
+        ctx.fillStyle = '#888';
+        ctx.fillText(mid, x + 10, ly);
+        // Demand bar
+        ctx.fillStyle = '#1f1f30';
+        ctx.fillRect(x + 90, ly + 1, 80, 6);
+        ctx.fillStyle = '#4fc3f7';
+        ctx.fillRect(x + 90, ly + 1, 80 * (m.demand / 100), 6);
+        ctx.fillStyle = '#666';
+        ctx.textAlign = 'right';
+        ctx.fillText('d' + Math.round(m.demand) + ' c' + Math.round(m.competition), x + w - 10, ly);
+        ctx.textAlign = 'left';
+        ly += 11;
+      }
+    }
+
+    function drawSimEventTicker() {
+      if (!sim || !sim.log) return;
+      const events = sim.log.filter(e => e.kind === 'market' || e.kind === 'hire' || e.kind === 'fire' || e.kind === 'alert').slice(-5);
+      if (events.length === 0) return;
+      const y = canvas.height - 24;
+      ctx.font = '10px ui-monospace, monospace';
+      ctx.textBaseline = 'middle';
+      let x = 12;
+      ctx.fillStyle = '#444';
+      ctx.textAlign = 'left';
+      ctx.fillText('LOG', x, y);
+      x += 30;
+      for (const evt of events) {
+        let label = '';
+        let color = '#888';
+        if (evt.kind === 'market') { label = evt.label; color = '#90a4ae'; }
+        else if (evt.kind === 'hire') { label = '+' + evt.name; color = '#81c784'; }
+        else if (evt.kind === 'fire') { label = '-' + evt.name; color = '#f44336'; }
+        else if (evt.kind === 'alert') { label = '!' + (evt.message || '').slice(0, 30); color = '#f44336'; }
+        const text = 'T' + evt.tick + ' ' + label;
+        const w = ctx.measureText(text).width + 16;
+        ctx.fillStyle = color;
+        ctx.fillText(text, x, y);
+        x += w;
+        if (x > canvas.width - 200) break;
+      }
+    }
+
     function draw() {
       ctx.fillStyle = '#0d0d14';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -328,7 +442,9 @@
       // Nodes
       for (const n of nodes) {
         const r = nodeRadius(n);
-        const color = nodeColor(n);
+        // Decorate node with role icon if it matches a sim employee
+        const empMatch = sim && (sim.employees || []).find(e => e.sessionKey === n.id || (e.id && n.spawnLabel && (e.id === n.spawnLabel || n.spawnLabel.includes(e.id))));
+        const color = empMatch ? empMatch.color : nodeColor(n);
 
         if (n.active) {
           const pulse = 1 + Math.sin(Date.now() / 600) * 0.06;
@@ -360,7 +476,14 @@
 
         ctx.fillStyle = '#666';
         ctx.font = '9px ui-monospace, monospace';
-        ctx.fillText(n.kind, n.x, n.y + 9);
+        ctx.fillText(empMatch ? empMatch.title : n.kind, n.x, n.y + 9);
+
+        // Role icon for employees
+        if (empMatch && empMatch.icon) {
+          ctx.fillStyle = empMatch.color;
+          ctx.font = '14px sans-serif';
+          ctx.fillText(empMatch.icon, n.x + r - 6, n.y + r - 8);
+        }
 
         // Active dot
         if (n.active) {
@@ -373,6 +496,7 @@
           ctx.stroke();
         }
       }
+      drawSimEventTicker();
     }
 
     function hitTest(x, y) {

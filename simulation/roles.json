@@ -1,0 +1,62 @@
+{
+  "roles": {
+    "engineer": {
+      "title": "Engineer",
+      "salaryPerTick": 200,
+      "qualityContribution": 3,
+      "icon": "⚙",
+      "color": "#4fc3f7",
+      "promptTemplate": "You are an engineer at Castle AI, a startup. Your CEO is Gilbert. Your job is to ship product features and improve product quality. The current company state is:\n\n{state_summary}\n\nYour current task: {task}\n\nReport back with what you'd do this sprint. Keep it under 200 words. Be specific and pragmatic."
+    },
+    "marketer": {
+      "title": "Marketer",
+      "salaryPerTick": 180,
+      "demandBoost": 2,
+      "icon": "📣",
+      "color": "#ce93d8",
+      "promptTemplate": "You are a marketer at Castle AI. Your CEO is Gilbert. Your job is to grow demand in target markets. Current state:\n\n{state_summary}\n\nTask: {task}\n\nPropose a single concrete campaign you'd run this tick. Under 200 words. Pick one market, justify it."
+    },
+    "sales": {
+      "title": "Sales",
+      "salaryPerTick": 220,
+      "revenueBoost": 1.15,
+      "icon": "💼",
+      "color": "#81c784",
+      "promptTemplate": "You are head of sales at Castle AI. CEO is Gilbert. Your job is to convert demand into revenue. Current state:\n\n{state_summary}\n\nTask: {task}\n\nWhat deal are you closing this tick? Under 200 words."
+    },
+    "researcher": {
+      "title": "Researcher",
+      "salaryPerTick": 250,
+      "qualityContribution": 5,
+      "icon": "🔬",
+      "color": "#ffb74d",
+      "promptTemplate": "You are a researcher at Castle AI. CEO is Gilbert. Your job is to find product opportunities and analyze markets. Current state:\n\n{state_summary}\n\nTask: {task}\n\nReturn one insight or opportunity. Under 200 words. Be specific."
+    },
+    "ops": {
+      "title": "Operations",
+      "salaryPerTick": 160,
+      "burnReduction": 0.95,
+      "icon": "📊",
+      "color": "#90a4ae",
+      "promptTemplate": "You are head of ops at Castle AI. CEO is Gilbert. You optimize costs and processes. Current state:\n\n{state_summary}\n\nTask: {task}\n\nIdentify one thing to cut or streamline. Under 200 words."
+    },
+    "designer": {
+      "title": "Designer",
+      "salaryPerTick": 190,
+      "qualityContribution": 2,
+      "demandBoost": 1,
+      "icon": "🎨",
+      "color": "#f06292",
+      "promptTemplate": "You are head of design at Castle AI. CEO is Gilbert. You make the product feel premium and demand grow. Current state:\n\n{state_summary}\n\nTask: {task}\n\nPropose one design change with measurable impact. Under 200 words."
+    }
+  },
+  "marketEvents": [
+    { "type": "boom", "label": "AI hype cycle", "demandDelta": 15, "trendDelta": 5, "weight": 1 },
+    { "type": "bust", "label": "Funding winter", "demandDelta": -20, "trendDelta": -8, "weight": 1 },
+    { "type": "competitor-launch", "label": "Competitor ships major feature", "competitionDelta": 10, "demandDelta": -5, "weight": 2 },
+    { "type": "viral", "label": "Viral demo on social", "demandDelta": 25, "trendDelta": 10, "weight": 0.5 },
+    { "type": "regulation", "label": "New regulation", "demandDelta": -8, "competitionDelta": -5, "weight": 0.8 },
+    { "type": "talent-shortage", "label": "Talent shortage", "competitionDelta": 8, "weight": 1 },
+    { "type": "neutral", "label": "Quiet quarter", "demandDelta": 0, "weight": 3 }
+  ]
+}
