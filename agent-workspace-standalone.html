@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Workspace</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1a1a2e;
+      color: #eee;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+    }
+    canvas { display: block; cursor: grab; }
+    canvas:active { cursor: grabbing; }
+    #status {
+      position: fixed; top: 12px; left: 12px;
+      font-size: 11px; color: #666; z-index: 10;
+    }
+    #status .live { color: #4fc3f7; }
+    #status .mock { color: #ffb74d; }
+    #status .error { color: #f44336; }
+    #panel {
+      position: fixed; right: 0; top: 0;
+      width: 340px; height: 100%;
+      background: #16213e;
+      border-left: 1px solid #0f3460;
+      padding: 20px; overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.2s ease;
+      z-index: 20;
+    }
+    #panel.open { transform: translateX(0); }
+    #panel h2 {
+      font-size: 14px; color: #999;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    #panel h3 { font-size: 16px; margin-bottom: 8px; }
+    .message {
+      background: #1a1a2e; border-radius: 6px;
+      padding: 10px; margin-bottom: 8px;
+      font-size: 13px; line-height: 1.4;
+    }
+    .message .from {
+      font-weight: 600; color: #4fc3f7; margin-bottom: 4px;
+    }
+    .message .text { color: #ccc; white-space: pre-wrap; }
+    .message .time { color: #666; font-size: 11px; margin-top: 4px; }
+    #tooltip {
+      position: fixed;
+      background: #0f3460; color: #eee;
+      padding: 6px 10px; border-radius: 4px;
+      font-size: 12px; pointer-events: none;
+      display: none; z-index: 30;
+    }
+  </style>
+</head>
+<body>
+  <div id="status">Loading...</div>
+  <canvas id="graph"></canvas>
+  <div id="panel">
+    <h2>Details</h2>
+    <div id="panel-content"></div>
+  </div>
+  <div id="tooltip"></div>
+
+  <script>
+    const canvas = document.getElementById('graph');
+    const ctx = canvas.getContext('2d');
+    const panel = document.getElementById('panel');
+    const panelContent = document.getElementById('panel-content');
+    const tooltip = document.getElementById('tooltip');
+    const statusEl = document.getElementById('status');
+
+    const NODE_RADIUS = 28;
+    const POLL_INTERVAL = 5000;
+    const COLORS = ['#4fc3f7','#81c784','#ffb74d','#ce93d8','#f06292','#4db6ac','#aed581','#ff8a65','#90a4ae','#fff176'];
+
+    // Mock fallback data
+    const MOCK_AGENTS = [
+      { id: 'gilbert', name: 'Gilbert II', role: 'castellan', active: true, model: 'claude-opus-4.7', tokens: 118934 },
+      { id: 'coder', name: 'Coder', role: 'subagent', active: true, model: 'claude-sonnet-4.6', tokens: 12400 },
+      { id: 'researcher', name: 'Researcher', role: 'subagent', active: false, model: 'gemini-3-pro', tokens: 8200 },
+      { id: 'reviewer', name: 'Reviewer', role: 'subagent', active: true, model: 'claude-haiku-4.5', tokens: 3100 },
+      { id: 'planner', name: 'Planner', role: 'subagent', active: false, model: 'gpt-5.4-mini', tokens: 5600 },
+    ];
+    const MOCK_CONNECTIONS = [
+      { from: 'gilbert', to: 'coder', messages: [
+        { from: 'Gilbert II', text: 'Build the agent workspace visualization', time: '15:40' },
+        { from: 'Coder', text: 'Done. Force layout + canvas render.', time: '15:44' },
+      ], lastActivity: Date.now() - 60000 },
+      { from: 'gilbert', to: 'researcher', messages: [
+        { from: 'Gilbert II', text: 'Find best graph layout algorithms', time: '15:20' },
+        { from: 'Researcher', text: 'Force-directed works for <20 nodes.', time: '15:22' },
+      ], lastActivity: Date.now() - 600000 },
+      { from: 'gilbert', to: 'reviewer', messages: [
+        { from: 'Gilbert II', text: 'Review the workspace HTML', time: '15:35' },
+        { from: 'Reviewer', text: 'Approved. Ship it.', time: '15:36' },
+      ], lastActivity: Date.now() - 30000 },
+      { from: 'coder', to: 'reviewer', messages: [
+        { from: 'Coder', text: 'PR ready for review', time: '15:43' },
+        { from: 'Reviewer', text: 'Looking now.', time: '15:44' },
+      ], lastActivity: Date.now() - 90000 },
+      { from: 'gilbert', to: 'planner', messages: [
+        { from: 'Gilbert II', text: 'Schedule sprint tasks', time: '14:00' },
+        { from: 'Planner', text: '3 tasks queued.', time: '14:02' },
+      ], lastActivity: Date.now() - 1200000 },
+      { from: 'planner', to: 'coder', messages: [
+        { from: 'Planner', text: 'Priority: dashboard first', time: '14:05' },
+        { from: 'Coder', text: 'Acknowledged.', time: '14:05' },
+      ], lastActivity: Date.now() - 1100000 },
+    ];
+
+    let agents = [];
+    let connections = [];
+    let pulses = []; // animated pulses traveling along edges
+    let dragging = null;
+    let offsetX = 0, offsetY = 0;
+    let isLive = false;
+
+    // --- Force-directed layout ---
+    class ForceLayout {
+      constructor() {
+        this.alpha = 1;
+        this.decay = 0.985;
+        this.minAlpha = 0.001;
+        this.repulsion = 10000;
+        this.attraction = 0.004;
+        this.damping = 0.82;
+        this.centerForce = 0.012;
+        this.running = false;
+      }
+      start() { this.alpha = 1; this.running = true; }
+      tick() {
+        if (!this.running || this.alpha < this.minAlpha) { this.running = false; return; }
+        const cx = canvas.width / 2, cy = canvas.height / 2;
+        for (const a of agents) { if (!a.vx) a.vx = 0; if (!a.vy) a.vy = 0; }
+        for (let i = 0; i < agents.length; i++) {
+          for (let j = i + 1; j < agents.length; j++) {
+            const a = agents[i], b = agents[j];
+            let dx = a.x - b.x, dy = a.y - b.y;
+            let dist = Math.sqrt(dx*dx + dy*dy) || 1;
+            let force = this.repulsion / (dist*dist);
+            let fx = (dx/dist) * force * this.alpha;
+            let fy = (dy/dist) * force * this.alpha;
+            a.vx += fx; a.vy += fy;
+            b.vx -= fx; b.vy -= fy;
+          }
+        }
+        for (const conn of connections) {
+          const a = getAgent(conn.from), b = getAgent(conn.to);
+          if (!a || !b) continue;
+          let dx = b.x - a.x, dy = b.y - a.y;
+          let dist = Math.sqrt(dx*dx + dy*dy) || 1;
+          let force = dist * this.attraction * this.alpha;
+          let fx = (dx/dist) * force, fy = (dy/dist) * force;
+          a.vx += fx; a.vy += fy;
+          b.vx -= fx; b.vy -= fy;
+        }
+        for (const a of agents) {
+          a.vx += (cx - a.x) * this.centerForce * this.alpha;
+          a.vy += (cy - a.y) * this.centerForce * this.alpha;
+        }
+        for (const a of agents) {
+          if (a === dragging) continue;
+          a.vx *= this.damping; a.vy *= this.damping;
+          a.x += a.vx; a.y += a.vy;
+          a.x = Math.max(NODE_RADIUS+20, Math.min(canvas.width-NODE_RADIUS-20, a.x));
+          a.y = Math.max(NODE_RADIUS+20, Math.min(canvas.height-NODE_RADIUS-20, a.y));
+        }
+        this.alpha *= this.decay;
+      }
+    }
+    const layout = new ForceLayout();
+
+    // --- Live data fetch ---
+    async function fetchLiveData() {
+      try {
+        const [sessResp, connResp] = await Promise.all([
+          fetch('./data/sessions.json?t=' + Date.now()),
+          fetch('./data/connections.json?t=' + Date.now())
+        ]);
+        if (!sessResp.ok) throw new Error('sessions ' + sessResp.status);
+        const sessData = await sessResp.json();
+        const connData = connResp.ok ? await connResp.json() : { recentMessages: {} };
+        applyLiveData(sessData.sessions || [], connData.recentMessages || {});
+        isLive = true;
+        const now = new Date().toLocaleTimeString();
+        statusEl.innerHTML = '<span class="live">● Live</span> &mdash; ' + agents.length + ' agents, ' + connections.length + ' connections &mdash; ' + now;
+      } catch (e) {
+        if (!isLive && agents.length === 0) {
+          loadMock();
+          statusEl.innerHTML = '<span class="mock">● Demo mode</span> &mdash; ' + e.message;
+        }
+      }
+    }
+
+    function applyLiveData(sessions, recentMessages) {
+      const cx = canvas.width / 2, cy = canvas.height / 2;
+      const existing = {};
+      for (const a of agents) existing[a.id] = a;
+
+      const newAgents = sessions.map((s, i) => {
+        const id = s.key;
+        const prev = existing[id];
+        const ageMs = s.ageMs || (Date.now() - (s.updatedAt || 0));
+        const active = ageMs < 10 * 60 * 1000; // active if updated in last 10min
+        const name = s.key.split(':').pop().slice(0, 12);
+        return {
+          id,
+          name: name === 'main' ? (s.agentId || 'main') : name,
+          role: s.kind || s.agentId || 'session',
+          x: prev ? prev.x : cx + (Math.random() - 0.5) * 400,
+          y: prev ? prev.y : cy + (Math.random() - 0.5) * 300,
+          vx: prev ? prev.vx : 0,
+          vy: prev ? prev.vy : 0,
+          color: COLORS[i % COLORS.length],
+          active,
+          model: s.model || '',
+          tokens: s.totalTokens || 0,
+          contextTokens: s.contextTokens || 0,
+          thinkingLevel: s.thinkingLevel || '',
+          ageMs
+        };
+      });
+
+      // Build connections from agentId groupings (sessions sharing an agentId connect to each other)
+      const newConnections = [];
+      const byAgent = {};
+      for (const a of newAgents) {
+        const grp = a.role || 'default';
+        if (!byAgent[grp]) byAgent[grp] = [];
+        byAgent[grp].push(a);
+      }
+
+      // Connect within each agent group: hub-and-spoke from first to others
+      for (const grp of Object.keys(byAgent)) {
+        const list = byAgent[grp];
+        if (list.length < 2) continue;
+        const hub = list.find(a => a.active) || list[0];
+        for (const other of list) {
+          if (other === hub) continue;
+          const recent = recentMessages[hub.id?.split(':').pop()] || recentMessages[other.id?.split(':').pop()];
+          newConnections.push({
+            from: hub.id,
+            to: other.id,
+            messages: buildMessagesFromRecent(recent),
+            lastActivity: Math.max(hub.ageMs ? Date.now() - hub.ageMs : 0, other.ageMs ? Date.now() - other.ageMs : 0)
+          });
+        }
+      }
+
+      // If we have a single session, connect it to a synthetic "user" node so we have at least an edge
+      if (newAgents.length === 1) {
+        newAgents.push({
+          id: '__user__',
+          name: 'You',
+          role: 'human',
+          x: cx + 150, y: cy,
+          vx: 0, vy: 0,
+          color: '#fff176',
+          active: true,
+          model: '',
+          tokens: 0,
+          ageMs: 0
+        });
+        const a = newAgents[0];
+        newConnections.push({
+          from: '__user__',
+          to: a.id,
+          messages: buildMessagesFromRecent(recentMessages[a.id?.split(':').pop()]),
+          lastActivity: Date.now() - (a.ageMs || 0)
+        });
+      }
+
+      const changed = agents.length !== newAgents.length;
+      agents = newAgents;
+      connections = newConnections;
+      if (changed) layout.start();
+
+      // Trigger pulses for any recently-active connections
+      for (const conn of connections) {
+        const ageSec = (Date.now() - conn.lastActivity) / 1000;
+        if (ageSec < 60 && Math.random() < 0.3) spawnPulse(conn);
+      }
+    }
+
+    function buildMessagesFromRecent(rec) {
+      if (!rec) return [];
+      const out = [];
+      if (rec.user) out.push({ from: 'User', text: rec.user, time: '' });
+      if (rec.assistant) out.push({ from: 'Agent', text: rec.assistant, time: '' });
+      return out;
+    }
+
+    function loadMock() {
+      const cx = canvas.width / 2, cy = canvas.height / 2;
+      agents = MOCK_AGENTS.map((a, i) => ({
+        ...a,
+        x: cx + (Math.random() - 0.5) * 400,
+        y: cy + (Math.random() - 0.5) * 300,
+        vx: 0, vy: 0,
+        color: COLORS[i % COLORS.length]
+      }));
+      connections = MOCK_CONNECTIONS.map(c => ({ ...c }));
+      layout.start();
+      // Demo pulses
+      setInterval(() => {
+        const conn = connections[Math.floor(Math.random() * connections.length)];
+        if (conn) spawnPulse(conn);
+      }, 1500);
+    }
+
+    // --- Pulse animations ---
+    function spawnPulse(conn) {
+      pulses.push({
+        conn,
+        t: 0,
+        speed: 0.015 + Math.random() * 0.01,
+        color: getAgent(conn.from)?.color || '#4fc3f7',
+        reverse: Math.random() < 0.5
+      });
+    }
+
+    function updatePulses() {
+      pulses = pulses.filter(p => {
+        p.t += p.speed;
+        return p.t < 1;
+      });
+    }
+
+    function drawPulses() {
+      for (const p of pulses) {
+        const a = getAgent(p.conn.from);
+        const b = getAgent(p.conn.to);
+        if (!a || !b) continue;
+        const t = p.reverse ? 1 - p.t : p.t;
+        const x = a.x + (b.x - a.x) * t;
+        const y = a.y + (b.y - a.y) * t;
+        const alpha = Math.sin(p.t * Math.PI); // fade in then out
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = p.color + Math.floor(alpha * 255).toString(16).padStart(2, '0');
+        ctx.fill();
+        // Glow
+        const glow = ctx.createRadialGradient(x, y, 2, x, y, 12);
+        glow.addColorStop(0, p.color + Math.floor(alpha * 100).toString(16).padStart(2, '0'));
+        glow.addColorStop(1, p.color + '00');
+        ctx.beginPath();
+        ctx.arc(x, y, 12, 0, Math.PI * 2);
+        ctx.fillStyle = glow;
+        ctx.fill();
+      }
+    }
+
+    // --- Render ---
+    function getAgent(id) { return agents.find(a => a.id === id); }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Connections
+      for (const conn of connections) {
+        const a = getAgent(conn.from), b = getAgent(conn.to);
+        if (!a || !b) continue;
+        const ageSec = (Date.now() - conn.lastActivity) / 1000;
+        const recent = ageSec < 60;
+        const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+        grad.addColorStop(0, a.color + (recent ? '88' : '44'));
+        grad.addColorStop(1, b.color + (recent ? '88' : '44'));
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = recent ? 2 : 1.5;
+        ctx.stroke();
+
+        if (conn.messages && conn.messages.length > 0) {
+          const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+          ctx.beginPath();
+          ctx.arc(mx, my, 11, 0, Math.PI * 2);
+          ctx.fillStyle = '#0f3460';
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.fillStyle = '#ccc';
+          ctx.font = '10px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(conn.messages.length, mx, my);
+        }
+      }
+
+      // Pulses (drawn between connections and nodes)
+      drawPulses();
+
+      // Nodes
+      for (const agent of agents) {
+        if (agent.active) {
+          // Pulsing ring for active agents
+          const pulse = 1 + Math.sin(Date.now() / 600) * 0.05;
+          const glow = ctx.createRadialGradient(agent.x, agent.y, NODE_RADIUS, agent.x, agent.y, NODE_RADIUS + 14 * pulse);
+          glow.addColorStop(0, agent.color + '40');
+          glow.addColorStop(1, agent.color + '00');
+          ctx.beginPath();
+          ctx.arc(agent.x, agent.y, (NODE_RADIUS + 14) * pulse, 0, Math.PI * 2);
+          ctx.fillStyle = glow;
+          ctx.fill();
+        }
+
+        ctx.beginPath();
+        ctx.arc(agent.x, agent.y, NODE_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = '#16213e';
+        ctx.fill();
+        ctx.strokeStyle = agent.active ? agent.color : agent.color + '55';
+        ctx.lineWidth = agent.active ? 2.5 : 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = '#eee';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const label = agent.name.length > 10 ? agent.name.slice(0, 9) + '\u2026' : agent.name;
+        ctx.fillText(label, agent.x, agent.y - 2);
+
+        ctx.fillStyle = '#888';
+        ctx.font = '9px sans-serif';
+        const role = (agent.role || '').slice(0, 12);
+        ctx.fillText(role, agent.x, agent.y + 10);
+
+        if (agent.active) {
+          ctx.beginPath();
+          ctx.arc(agent.x + NODE_RADIUS - 5, agent.y - NODE_RADIUS + 5, 5, 0, Math.PI * 2);
+          ctx.fillStyle = '#4caf50';
+          ctx.fill();
+          ctx.strokeStyle = '#1a1a2e';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+    }
+
+    function hitTest(x, y) {
+      for (const agent of agents) {
+        const dx = x - agent.x, dy = y - agent.y;
+        if (dx*dx + dy*dy < NODE_RADIUS*NODE_RADIUS) return { type: 'node', agent };
+      }
+      for (const conn of connections) {
+        const a = getAgent(conn.from), b = getAgent(conn.to);
+        if (!a || !b) continue;
+        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        const dx = x - mx, dy = y - my;
+        if (dx*dx + dy*dy < 15*15) return { type: 'edge', conn };
+      }
+      return null;
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      const hit = hitTest(e.clientX, e.clientY);
+      if (hit && hit.type === 'node') {
+        dragging = hit.agent;
+        offsetX = e.clientX - hit.agent.x;
+        offsetY = e.clientY - hit.agent.y;
+        layout.alpha = Math.max(layout.alpha, 0.3);
+        layout.running = true;
+      }
+    });
+    canvas.addEventListener('mousemove', (e) => {
+      if (dragging) {
+        dragging.x = e.clientX - offsetX;
+        dragging.y = e.clientY - offsetY;
+        dragging.vx = 0; dragging.vy = 0;
+        return;
+      }
+      const hit = hitTest(e.clientX, e.clientY);
+      if (hit) {
+        canvas.style.cursor = 'pointer';
+        tooltip.style.display = 'block';
+        tooltip.style.left = (e.clientX + 14) + 'px';
+        tooltip.style.top = (e.clientY - 10) + 'px';
+        if (hit.type === 'node') {
+          tooltip.textContent = hit.agent.name + ' (' + hit.agent.role + ')' + (hit.agent.active ? ' \u2014 active' : '');
+        } else {
+          const a = getAgent(hit.conn.from), b = getAgent(hit.conn.to);
+          tooltip.textContent = a.name + ' \u2194 ' + b.name + ' \u2014 ' + (hit.conn.messages?.length || 0) + ' msgs';
+        }
+      } else {
+        canvas.style.cursor = 'grab';
+        tooltip.style.display = 'none';
+      }
+    });
+    canvas.addEventListener('mouseup', () => { dragging = null; });
+    canvas.addEventListener('click', (e) => {
+      const hit = hitTest(e.clientX, e.clientY);
+      if (hit && hit.type === 'edge') {
+        const a = getAgent(hit.conn.from), b = getAgent(hit.conn.to);
+        const msgs = hit.conn.messages || [];
+        panelContent.innerHTML = '<h3>' + a.name + ' \u2194 ' + b.name + '</h3>' +
+          (msgs.length ? msgs.map(m =>
+            '<div class="message"><div class="from">' + escapeHtml(m.from) + '</div><div class="text">' + escapeHtml(m.text) + '</div>' + (m.time ? '<div class="time">' + m.time + '</div>' : '') + '</div>'
+          ).join('') : '<p style="color:#666">No messages recorded</p>');
+        spawnPulse(hit.conn);
+        panel.classList.add('open');
+      } else if (hit && hit.type === 'node') {
+        const a = hit.agent;
+        const pct = a.contextTokens ? Math.round((a.tokens / a.contextTokens) * 100) : 0;
+        panelContent.innerHTML = '<h3>' + escapeHtml(a.name) + '</h3>' +
+          '<p style="color:#999;margin-bottom:12px">' + escapeHtml(a.role) +
+          (a.active ? ' \u2014 <span style="color:#4caf50">active</span>' : ' \u2014 <span style="color:#666">inactive</span>') + '</p>' +
+          '<div style="font-size:12px;color:#aaa;line-height:1.8">' +
+          '<div><strong>Model:</strong> ' + escapeHtml(a.model || 'unknown') + '</div>' +
+          '<div><strong>Tokens:</strong> ' + (a.tokens ? a.tokens.toLocaleString() : '\u2014') + (pct ? ' (' + pct + '%)' : '') + '</div>' +
+          (a.thinkingLevel ? '<div><strong>Thinking:</strong> ' + escapeHtml(a.thinkingLevel) + '</div>' : '') +
+          '<div style="margin-top:8px"><strong>ID:</strong></div>' +
+          '<div><code style="background:#1a1a2e;padding:2px 6px;border-radius:3px;font-size:11px;word-break:break-all">' + escapeHtml(a.id) + '</code></div>' +
+          '</div>';
+        panel.classList.add('open');
+      } else {
+        panel.classList.remove('open');
+      }
+    });
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    function loop() {
+      layout.tick();
+      updatePulses();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Try live first, fall back to mock
+    fetchLiveData();
+    setInterval(fetchLiveData, POLL_INTERVAL);
+
+    loop();
+  </script>
+</body>
+</html>
