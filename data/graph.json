@@ -1,0 +1,162 @@
+{
+  "generatedAt": 1780785343859,
+  "nodes": [
+    {
+      "id": "agent:main:main",
+      "sessionId": "771af35a-22e9-4d61-aa12-4f0b8fcfa9c8",
+      "label": "main",
+      "kind": "main",
+      "spawnedBy": null,
+      "spawnDepth": 0,
+      "spawnLabel": null,
+      "model": "claude-opus-4.7",
+      "channel": "webchat",
+      "contextTokens": 200000,
+      "inputTokens": 1,
+      "outputTokens": 6,
+      "totalTokens": 7,
+      "cost": 0,
+      "startedAt": 1780759727644,
+      "lastInteractionAt": 1780784363942,
+      "ageMs": 979917,
+      "endedAt": 1780785128559,
+      "active": false,
+      "recentMessages": [
+        {
+          "role": "assistant",
+          "text": "let me actually run the CEO loop \u2014 spawn a real sub-agent to back one of the employees and have it produce useful output.",
+          "time": "2026-06-06T22:18:32.719Z"
+        },
+        {
+          "role": "assistant",
+          "text": "Let me play CEO with the real numbers. AI-saas is brutal (100% competition, 18 demand). I'll hire a researcher to find a path, and hook the sim employee to the real spawned sub-agent so the link shows up in the graph.",
+          "time": "2026-06-06T22:18:45.620Z"
+        },
+        {
+          "role": "user",
+          "text": "[Sat 2026-06-06 22:19 UTC] <<<BEGIN_OPENCLAW_INTERNAL_CONTEXT>>>\nOpenClaw runtime context (internal):\nThis context is runtime-generated, not user-authored. Keep internal details private.\n\n[Internal task completion event]\nsource: subagent\nse",
+          "time": "2026-06-06T22:19:32.054Z"
+        },
+        {
+          "role": "assistant",
+          "text": "Researcher reported back. Pivot recommendation:\n\n**ai-saas is a dead end.** 100% competition + falling demand + we're covering 3% of burn. Staying here = runway zero.\n\n**Pivot to consumer:**\n- Highest demand of the three (27)\n- Lowest compe",
+          "time": "2026-06-06T22:19:44.762Z"
+        },
+        {
+          "role": "user",
+          "text": "[OpenClaw heartbeat poll]",
+          "time": "2026-06-06T22:32:04.195Z"
+        },
+        {
+          "role": "assistant",
+          "text": "HEARTBEAT_OK",
+          "time": "2026-06-06T22:32:08.544Z"
+        }
+      ]
+    },
+    {
+      "id": "agent:main:direct:web-1780759718863",
+      "sessionId": "9d2789bd-5a4d-4eb7-8fef-a815e0eb4ecc",
+      "label": "web-1780759718",
+      "kind": "direct",
+      "spawnedBy": null,
+      "spawnDepth": 0,
+      "spawnLabel": null,
+      "model": null,
+      "channel": null,
+      "contextTokens": 0,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "totalTokens": 0,
+      "cost": 0,
+      "startedAt": 1780759718432,
+      "lastInteractionAt": 1780759718432,
+      "ageMs": 25625427,
+      "endedAt": null,
+      "active": false,
+      "recentMessages": []
+    },
+    {
+      "id": "agent:main:subagent:4a5f2264-360d-4727-b33f-bd544b8216d5",
+      "sessionId": "76412d98-fd68-44aa-b9a4-f76e6d952033",
+      "label": "4a5f2264-360d-",
+      "kind": "subagent",
+      "spawnedBy": "agent:main:main",
+      "spawnDepth": 1,
+      "spawnLabel": "test-subagent-1",
+      "model": "claude-opus-4.6",
+      "channel": "webchat",
+      "contextTokens": 200000,
+      "inputTokens": 11,
+      "outputTokens": 125,
+      "totalTokens": 136,
+      "cost": 0,
+      "startedAt": 1780763296473,
+      "lastInteractionAt": 1780763316660,
+      "ageMs": 22027199,
+      "endedAt": 1780763316503,
+      "active": false,
+      "recentMessages": [
+        {
+          "role": "user",
+          "text": "[Sat 2026-06-06 16:28 UTC] [Subagent Context] You are running as a subagent (depth 1/1). Results auto-announce to your requester; do not busy-poll for status.\n\nBegin. Your assigned task is in the system prompt under **Your Role**; execute i",
+          "time": "2026-06-06T16:28:24.869Z"
+        },
+        {
+          "role": "assistant",
+          "text": "Task complete. I wrote the file `/home/ubuntu/.openclaw/workspace/agent-workspace/test-subagent-output.txt` with the current UTC time (2026-06-06 16:28:28) and a one-line greeting. Nothing else needed.",
+          "time": "2026-06-06T16:28:36.499Z"
+        }
+      ]
+    },
+    {
+      "id": "agent:main:subagent:eff756e6-5713-4517-afa1-d48821b0777e",
+      "sessionId": "f1e8e1eb-7b9c-4909-a69b-14f74a78426a",
+      "label": "eff756e6-5713-",
+      "kind": "subagent",
+      "spawnedBy": "agent:main:main",
+      "spawnDepth": 1,
+      "spawnLabel": "researcher-3",
+      "model": "claude-opus-4.6",
+      "channel": "webchat",
+      "contextTokens": 200000,
+      "inputTokens": 5,
+      "outputTokens": 388,
+      "totalTokens": 393,
+      "cost": 0,
+      "startedAt": 1780784343104,
+      "lastInteractionAt": 1780784363749,
+      "ageMs": 980110,
+      "endedAt": 1780784363597,
+      "active": false,
+      "recentMessages": [
+        {
+          "role": "user",
+          "text": "[Sat 2026-06-06 22:19 UTC] [Subagent Context] You are running as a subagent (depth 1/1). Results auto-announce to your requester; do not busy-poll for status.\n\nBegin. Your assigned task is in the system prompt under **Your Role**; execute i",
+          "time": "2026-06-06T22:19:11.474Z"
+        },
+        {
+          "role": "assistant",
+          "text": "## Market Analysis: Pivot Recommendation\n\n**Honest assessment of ai-saas:** It's a dead end. 100% competition saturation with demand trending down (-5) means you're fighting over a shrinking pie with everyone else. Your burn is 680/tick aga",
+          "time": "2026-06-06T22:19:23.594Z"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "agent:main:main",
+      "to": "agent:main:subagent:4a5f2264-360d-4727-b33f-bd544b8216d5",
+      "kind": "spawn",
+      "label": "test-subagent-1",
+      "lastActivity": 1780763316660
+    },
+    {
+      "from": "agent:main:main",
+      "to": "agent:main:subagent:eff756e6-5713-4517-afa1-d48821b0777e",
+      "kind": "spawn",
+      "label": "researcher-3",
+      "lastActivity": 1780784363749
+    }
+  ]
+}

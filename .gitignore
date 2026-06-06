@@ -1,9 +1,0 @@
-# Generated/local data
-data/
-test-subagent-output.txt
-node_modules/
-*.log
-
-# OS
-.DS_Store
-Thumbs.db

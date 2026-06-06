@@ -1,0 +1,383 @@
+{
+  "generatedAt": 1780785324563,
+  "tick": 43,
+  "company": {
+    "name": "Castle AI",
+    "founded": 1780783800000,
+    "treasury": 72148,
+    "burnRate": 930,
+    "revenuePerTick": 328,
+    "valuation": 62048,
+    "morale": 81,
+    "ceo": "agent:main:main"
+  },
+  "products": [
+    {
+      "id": "core",
+      "name": "Core Product",
+      "stage": "scaling",
+      "quality": 100,
+      "revenuePerTick": 0
+    }
+  ],
+  "markets": {
+    "ai-saas": {
+      "demand": 82,
+      "competition": 100,
+      "trend": 3.366486450131586,
+      "lastEvent": {
+        "type": "bust",
+        "label": "Funding winter",
+        "tick": 43
+      }
+    },
+    "consumer": {
+      "demand": 76,
+      "competition": 100,
+      "trend": -3.36949773182817,
+      "lastEvent": {
+        "type": "neutral",
+        "label": "Quiet quarter",
+        "tick": 43
+      }
+    },
+    "enterprise": {
+      "demand": 60,
+      "competition": 99,
+      "trend": 2.587562319457593,
+      "lastEvent": {
+        "type": "bust",
+        "label": "Funding winter",
+        "tick": 43
+      }
+    }
+  },
+  "employees": [
+    {
+      "id": "engineer-1",
+      "role": "engineer",
+      "title": "Engineer",
+      "salary": 200,
+      "icon": "\u2699",
+      "color": "#4fc3f7",
+      "task": "Ship MVP of core product",
+      "sessionKey": null,
+      "hiredAt": 1780784114650,
+      "hiredAtTick": 3,
+      "status": "active"
+    },
+    {
+      "id": "marketer-2",
+      "role": "marketer",
+      "title": "Marketer",
+      "salary": 180,
+      "icon": "\ud83d\udce3",
+      "color": "#ce93d8",
+      "task": "Drive demand in ai-saas market",
+      "sessionKey": null,
+      "hiredAt": 1780784114675,
+      "hiredAtTick": 3,
+      "status": "active"
+    },
+    {
+      "id": "researcher-3",
+      "role": "researcher",
+      "title": "Researcher",
+      "salary": 250,
+      "icon": "\ud83d\udd2c",
+      "color": "#ffb74d",
+      "task": "Find the most promising market opportunity",
+      "sessionKey": "agent:main:subagent:eff756e6-5713-4517-afa1-d48821b0777e",
+      "hiredAt": 1780784351982,
+      "hiredAtTick": 10,
+      "status": "active"
+    }
+  ],
+  "log": [
+    {
+      "ts": 1780785024316,
+      "tick": 33,
+      "kind": "financial",
+      "treasury": 77533,
+      "revenue": 392,
+      "burn": 930,
+      "valuation": 70633,
+      "morale": 78,
+      "runwayTicks": 144.1,
+      "employees": 3
+    },
+    {
+      "ts": 1780785054341,
+      "tick": 34,
+      "kind": "market",
+      "market": "consumer",
+      "event": "talent-shortage",
+      "label": "Talent shortage"
+    },
+    {
+      "ts": 1780785054341,
+      "tick": 34,
+      "kind": "market",
+      "market": "enterprise",
+      "event": "boom",
+      "label": "AI hype cycle"
+    },
+    {
+      "ts": 1780785054341,
+      "tick": 34,
+      "kind": "financial",
+      "treasury": 77003,
+      "revenue": 400,
+      "burn": 930,
+      "valuation": 70495,
+      "morale": 78,
+      "runwayTicks": 145.2,
+      "employees": 3
+    },
+    {
+      "ts": 1780785084365,
+      "tick": 35,
+      "kind": "market",
+      "market": "consumer",
+      "event": "boom",
+      "label": "AI hype cycle"
+    },
+    {
+      "ts": 1780785084365,
+      "tick": 35,
+      "kind": "financial",
+      "treasury": 76469,
+      "revenue": 396,
+      "burn": 930,
+      "valuation": 69757,
+      "morale": 78,
+      "runwayTicks": 143.1,
+      "employees": 3
+    },
+    {
+      "ts": 1780785114390,
+      "tick": 36,
+      "kind": "market",
+      "market": "ai-saas",
+      "event": "boom",
+      "label": "AI hype cycle"
+    },
+    {
+      "ts": 1780785114390,
+      "tick": 36,
+      "kind": "market",
+      "market": "consumer",
+      "event": "competitor-launch",
+      "label": "Competitor ships major feature"
+    },
+    {
+      "ts": 1780785114390,
+      "tick": 36,
+      "kind": "market",
+      "market": "enterprise",
+      "event": "viral",
+      "label": "Viral demo on social"
+    },
+    {
+      "ts": 1780785114390,
+      "tick": 36,
+      "kind": "financial",
+      "treasury": 75951,
+      "revenue": 412,
+      "burn": 930,
+      "valuation": 70051,
+      "morale": 78,
+      "runwayTicks": 146.6,
+      "employees": 3
+    },
+    {
+      "ts": 1780785144414,
+      "tick": 37,
+      "kind": "market",
+      "market": "ai-saas",
+      "event": "competitor-launch",
+      "label": "Competitor ships major feature"
+    },
+    {
+      "ts": 1780785144414,
+      "tick": 37,
+      "kind": "market",
+      "market": "enterprise",
+      "event": "viral",
+      "label": "Viral demo on social"
+    },
+    {
+      "ts": 1780785144414,
+      "tick": 37,
+      "kind": "financial",
+      "treasury": 75421,
+      "revenue": 400,
+      "burn": 930,
+      "valuation": 68921,
+      "morale": 79,
+      "runwayTicks": 142.3,
+      "employees": 3
+    },
+    {
+      "ts": 1780785174438,
+      "tick": 38,
+      "kind": "market",
+      "market": "ai-saas",
+      "event": "regulation",
+      "label": "New regulation"
+    },
+    {
+      "ts": 1780785174438,
+      "tick": 38,
+      "kind": "market",
+      "market": "enterprise",
+      "event": "bust",
+      "label": "Funding winter"
+    },
+    {
+      "ts": 1780785174438,
+      "tick": 38,
+      "kind": "financial",
+      "treasury": 74874,
+      "revenue": 383,
+      "burn": 930,
+      "valuation": 67532,
+      "morale": 80,
+      "runwayTicks": 136.9,
+      "employees": 3
+    },
+    {
+      "ts": 1780785204463,
+      "tick": 39,
+      "kind": "market",
+      "market": "consumer",
+      "event": "competitor-launch",
+      "label": "Competitor ships major feature"
+    },
+    {
+      "ts": 1780785204463,
+      "tick": 39,
+      "kind": "market",
+      "market": "enterprise",
+      "event": "competitor-launch",
+      "label": "Competitor ships major feature"
+    },
+    {
+      "ts": 1780785204463,
+      "tick": 39,
+      "kind": "financial",
+      "treasury": 74340,
+      "revenue": 396,
+      "burn": 930,
+      "valuation": 67636,
+      "morale": 80,
+      "runwayTicks": 139.2,
+      "employees": 3
+    },
+    {
+      "ts": 1780785234487,
+      "tick": 40,
+      "kind": "market",
+      "market": "enterprise",
+      "event": "competitor-launch",
+      "label": "Competitor ships major feature"
+    },
+    {
+      "ts": 1780785234487,
+      "tick": 40,
+      "kind": "financial",
+      "treasury": 73810,
+      "revenue": 400,
+      "burn": 930,
+      "valuation": 67310,
+      "morale": 80,
+      "runwayTicks": 139.3,
+      "employees": 3
+    },
+    {
+      "ts": 1780785264512,
+      "tick": 41,
+      "kind": "market",
+      "market": "ai-saas",
+      "event": "boom",
+      "label": "AI hype cycle"
+    },
+    {
+      "ts": 1780785264512,
+      "tick": 41,
+      "kind": "market",
+      "market": "consumer",
+      "event": "competitor-launch",
+      "label": "Competitor ships major feature"
+    },
+    {
+      "ts": 1780785264512,
+      "tick": 41,
+      "kind": "financial",
+      "treasury": 73280,
+      "revenue": 400,
+      "burn": 930,
+      "valuation": 66780,
+      "morale": 79,
+      "runwayTicks": 138.3,
+      "employees": 3
+    },
+    {
+      "ts": 1780785294538,
+      "tick": 42,
+      "kind": "market",
+      "market": "consumer",
+      "event": "bust",
+      "label": "Funding winter"
+    },
+    {
+      "ts": 1780785294538,
+      "tick": 42,
+      "kind": "market",
+      "market": "enterprise",
+      "event": "competitor-launch",
+      "label": "Competitor ships major feature"
+    },
+    {
+      "ts": 1780785294538,
+      "tick": 42,
+      "kind": "financial",
+      "treasury": 72750,
+      "revenue": 400,
+      "burn": 930,
+      "valuation": 66250,
+      "morale": 80,
+      "runwayTicks": 137.3,
+      "employees": 3
+    },
+    {
+      "ts": 1780785324563,
+      "tick": 43,
+      "kind": "market",
+      "market": "ai-saas",
+      "event": "bust",
+      "label": "Funding winter"
+    },
+    {
+      "ts": 1780785324563,
+      "tick": 43,
+      "kind": "market",
+      "market": "enterprise",
+      "event": "bust",
+      "label": "Funding winter"
+    },
+    {
+      "ts": 1780785324563,
+      "tick": 43,
+      "kind": "financial",
+      "treasury": 72148,
+      "revenue": 328,
+      "burn": 930,
+      "valuation": 62048,
+      "morale": 81,
+      "runwayTicks": 119.8,
+      "employees": 3
+    }
+  ],
+  "runwayTicks": 119.8
+}
