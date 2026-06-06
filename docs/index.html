@@ -102,6 +102,9 @@
     document.getElementById('close-panel').onclick = () => panel.classList.remove('open');
 
     const POLL_INTERVAL = 5000;
+    // When deployed on GitHub Pages, fall back to fetching live data from the `data` branch.
+    const DATA_URL_LOCAL = './data/graph.json';
+    const DATA_URL_REMOTE = 'https://raw.githubusercontent.com/o29352008-spec/agent-workspace/data/data/graph.json';
     const KIND_COLORS = {
       main: '#4fc3f7',
       subagent: '#81c784',
@@ -208,7 +211,11 @@
     // --- Live data ---
     async function fetchLive() {
       try {
-        const resp = await fetch('./data/graph.json?t=' + Date.now());
+        // Try local first (works when running with refresh-data.sh writing to ./data/)
+        let resp = await fetch(DATA_URL_LOCAL + '?t=' + Date.now()).catch(() => null);
+        if (!resp || !resp.ok) {
+          resp = await fetch(DATA_URL_REMOTE + '?t=' + Date.now());
+        }
         if (!resp.ok) throw new Error('graph ' + resp.status);
         const g = await resp.json();
         applyGraph(g);
